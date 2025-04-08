@@ -44,6 +44,10 @@ async function main() {
     name: "ComfyUI Selfie",
     version: "1.0.0",
     description: "Generates images of the assistant",
+  }, {
+    capabilities: {
+      tools: {}
+    }
   });
 
   // Load the ComfyUI workflow from the JSON file
@@ -64,7 +68,7 @@ async function main() {
 
   // Define the image generation tool
   server.tool(
-    "generateSelfie",
+    "generate-selfie",
     // Input schema: requires a 'prompt' string
     {
       prompt: z
