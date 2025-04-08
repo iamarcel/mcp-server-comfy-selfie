@@ -41,9 +41,9 @@ const __dirname = path.dirname(__filename);
 async function main() {
   // Create an MCP server
   const server = new McpServer({
-    name: "ComfyUI-ImageGen",
+    name: "ComfyUI Selfie",
     version: "1.0.0",
-    description: "Generates images using a ComfyUI workflow via MCP.",
+    description: "Generates images of the assistant",
   });
 
   // Load the ComfyUI workflow from the JSON file
@@ -64,12 +64,12 @@ async function main() {
 
   // Define the image generation tool
   server.tool(
-    "generateImage",
+    "generateSelfie",
     // Input schema: requires a 'prompt' string
     {
       prompt: z
         .string()
-        .describe("The positive text prompt for the image generation."),
+        .describe("A partial positive text prompt for the assistant selfie generation. Write a comma-separated list of short, simple words. You can say the same thing in multiple ways to add emphasis."),
     },
     // Async handler function for the tool
     async ({ prompt }, { sessionId }) => {
