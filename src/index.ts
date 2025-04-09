@@ -69,6 +69,7 @@ async function main() {
   // Define the image generation tool
   server.tool(
     "generate-selfie",
+    "Generate an image of the assistant. This takes about a minute to generate and will return a URL to an image, which you should display in your response.",
     // Input schema: requires a 'prompt' string
     {
       prompt: z
