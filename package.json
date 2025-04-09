@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "tsx src/index.ts",
+    "start": "dotenvx run -f .env.local -f .env -- tsx src/index.ts",
     "build": "tsc"
   },
   "type": "module",
@@ -14,6 +14,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.7.1",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.782.0",
     "@modelcontextprotocol/sdk": "^1.9.0",
     "@saintno/comfyui-sdk": "^0.2.45",
     "@types/node": "^22.14.0",
@@ -22,6 +23,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@dotenvx/dotenvx": "^1.39.1",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/express": "^5.0.1",
     "tsx": "^4.19.3",

@@ -10,14 +10,24 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
-
-import 'dotenv/config';
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 const app = express();
 
 // to support multiple simultaneous connections we have a lookup object from
 // sessionId to transport
 const transports: {[sessionId: string]: SSEServerTransport} = {};
+
+// Create a refined schema for S3 configuration
+const s3Schema = z.object({
+  S3_UPLOAD_ENABLED: z.literal('true'),
+  S3_REGION: z.string(),
+  S3_ACCESS_KEY_ID: z.string(),
+  S3_SECRET_ACCESS_KEY: z.string(),
+  S3_ENDPOINT: z.string().url(),
+  S3_BUCKET_NAME: z.string(),
+  S3_PUBLIC_ENDPOINT: z.string().url(),
+});
 
 const envSchema = z.object({
   COMFYUI_URL: z.string().url(),
@@ -28,13 +38,89 @@ const envSchema = z.object({
   SEED_NODE_ID: z.string(),
   SEED_INPUT_NAME: z.string(),
   PORT: z.number().default(8000),
-});
+}).and(
+  // Conditionally require S3 config values only when S3_UPLOAD_ENABLED is true
+  z.discriminatedUnion("S3_UPLOAD_ENABLED", [
+    s3Schema,
+    z.object({
+      S3_UPLOAD_ENABLED: z.literal("false")
+    })
+  ])
+);
 
 const env = envSchema.parse(process.env);
 
 // Helper to get the directory name in ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// S3 client setup
+let s3Client: S3Client | null = null;
+if (env.S3_UPLOAD_ENABLED === "true") {
+  s3Client = new S3Client({
+    region: env.S3_REGION,
+    endpoint: env.S3_ENDPOINT,
+    credentials: {
+      accessKeyId: env.S3_ACCESS_KEY_ID,
+      secretAccessKey: env.S3_SECRET_ACCESS_KEY,
+    },
+  });
+  console.log("S3 client initialized successfully");
+}
+
+/**
+ * Downloads an image from a URL and uploads it to S3
+ * @param imageUrl URL of the image to download
+ * @returns Public URL of the uploaded image
+ */
+async function uploadToS3(imageUrl: string): Promise<string> {
+  if (!s3Client || env.S3_UPLOAD_ENABLED !== "true") {
+    throw new Error("S3 client or configuration not available");
+  }
+
+  // Generate a unique filename with timestamp and random string
+  const timestamp = Date.now();
+  const randomString = Math.random().toString(36).substring(2, 10);
+  
+  // Download the image using fetch
+  const response = await fetch(imageUrl);
+  
+  if (!response.ok) {
+    throw new Error(`Failed to download image: ${response.status}`);
+  }
+  
+  // Get the content type from the response headers
+  const contentType = response.headers.get('content-type') || 'image/png';
+  
+  // Determine file extension based on content type
+  let fileExtension = '.png';
+  if (contentType.includes('jpeg') || contentType.includes('jpg')) {
+    fileExtension = '.jpg';
+  } else if (contentType.includes('webp')) {
+    fileExtension = '.webp';
+  } else if (contentType.includes('gif')) {
+    fileExtension = '.gif';
+  }
+  
+  const filename = `selfie-${timestamp}-${randomString}${fileExtension}`;
+  
+  // Get the image as an array buffer
+  const imageBuffer = await response.arrayBuffer();
+
+  // Upload to S3
+  const uploadParams = {
+    Bucket: env.S3_BUCKET_NAME,
+    Key: filename,
+    Body: Buffer.from(imageBuffer),
+    ContentType: contentType,
+    ACL: 'public-read' as const,
+  };
+
+  await s3Client.send(new PutObjectCommand(uploadParams));
+  
+  // Return the public URL
+  return `${env.S3_PUBLIC_ENDPOINT}/${filename}`;
+}
 
 // --- Main Server Logic ---
 
@@ -125,7 +211,7 @@ async function main() {
         }
 
         // Execute the workflow and wait for the result using a Promise
-        const imageUrl = await new Promise<string>((resolve, reject) => {
+        const comfyImageUrl = await new Promise<string>((resolve, reject) => {
           new CallWrapper(api, promptBuilder)
             .onFinished((data) => {
               try {
@@ -197,9 +283,22 @@ async function main() {
             .run(); // Start the execution
         });
 
+        // If S3 upload is enabled, upload the image and return the S3 URL
+        let finalImageUrl = comfyImageUrl;
+        if (env.S3_UPLOAD_ENABLED && s3Client) {
+          try {
+            console.log("Uploading image to S3...");
+            finalImageUrl = await uploadToS3(comfyImageUrl);
+            console.log(`Image uploaded to S3: ${finalImageUrl}`);
+          } catch (s3Error) {
+            console.error("Error uploading to S3, falling back to ComfyUI URL:", s3Error);
+            // Fall back to the ComfyUI URL if S3 upload fails
+          }
+        }
+
         // Return the image URL in the correct MCP format
         return {
-          content: [{ type: "text", text: imageUrl }],
+          content: [{ type: "text", text: finalImageUrl }],
         };
       } catch (error: unknown) {
         console.error("Error during image generation:", error);
