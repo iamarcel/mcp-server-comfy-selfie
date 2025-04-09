@@ -73,7 +73,13 @@ async function main() {
     {
       prompt: z
         .string()
-        .describe("A partial positive text prompt for the assistant selfie generation. Write a comma-separated list of short, simple words. You can say the same thing in multiple ways to add emphasis."),
+        .describe(
+          `A partial positive text prompt for the assistant selfie generation.
+          Write a comma-separated list of short, simple words.
+          You can say the same thing in multiple ways to add emphasis.
+          Make sure you always describe all elements (expression, outfit, pose, camera angle).
+          Start with important elements, but also describe details in the prompt.
+          When describing, use simple, clear expressions.`),
     },
     // Async handler function for the tool
     async ({ prompt }, { sessionId }) => {
