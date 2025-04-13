@@ -12,8 +12,8 @@ importers:
         specifier: ^3.782.0
         version: 3.782.0
       '@modelcontextprotocol/sdk':
-        specifier: ^1.9.0
-        version: 1.9.0
+        specifier: github:iamarcel/modelcontextprotocol-typescript-sdk
+        version: https://codeload.github.com/iamarcel/modelcontextprotocol-typescript-sdk/tar.gz/f152a4dcf751f012e8d1c175aacc762c9af94e20
       '@saintno/comfyui-sdk':
         specifier: ^0.2.45
         version: 0.2.45(typescript@5.8.3)
@@ -410,8 +410,9 @@ packages:
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
 
-  '@modelcontextprotocol/sdk@1.9.0':
-    resolution: {integrity: sha512-Jq2EUCQpe0iyO5FGpzVYDNFR6oR53AIrwph9yWl7uSc7IWUMsrmpmSaTGra5hQNunXpM+9oit85p924jWuHzUA==}
+  '@modelcontextprotocol/sdk@https://codeload.github.com/iamarcel/modelcontextprotocol-typescript-sdk/tar.gz/f152a4dcf751f012e8d1c175aacc762c9af94e20':
+    resolution: {tarball: https://codeload.github.com/iamarcel/modelcontextprotocol-typescript-sdk/tar.gz/f152a4dcf751f012e8d1c175aacc762c9af94e20}
+    version: 1.10.0
     engines: {node: '>=18'}
 
   '@noble/ciphers@1.2.1':
@@ -1784,7 +1785,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
-  '@modelcontextprotocol/sdk@1.9.0':
+  '@modelcontextprotocol/sdk@https://codeload.github.com/iamarcel/modelcontextprotocol-typescript-sdk/tar.gz/f152a4dcf751f012e8d1c175aacc762c9af94e20':
     dependencies:
       content-type: 1.0.5
       cors: 2.8.5
