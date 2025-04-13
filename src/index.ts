@@ -173,7 +173,7 @@ async function main() {
     // Async handler function for the tool
     async (
       { prompt },
-      { sessionId, signal, _meta, sendNotification },
+      { signal, _meta, sendNotification },
     ): Promise<CallToolResult> => {
       console.log(`Received image generation request with prompt: "${prompt}"`);
       try {
