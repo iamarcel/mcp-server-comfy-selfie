@@ -319,7 +319,10 @@ async function main() {
 
         // Return the image URL in the correct MCP format
         return {
-          content: [{ type: "text", text: finalImageUrl }],
+          content: [
+            { type: "text", text: "Image generated." },
+            { type: "image", data: finalImageUrl, mimeType: "image/png" },
+          ],
         };
       } catch (error: unknown) {
         console.error("Error during image generation:", error);
